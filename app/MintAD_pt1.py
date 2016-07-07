@@ -45,3 +45,4 @@ begin()
 permissions()
 
 print "\n\n Script executed successfully.  Ready for Reboot and part 2"
+raw_input("Press any key to continue...")
