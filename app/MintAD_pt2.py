@@ -59,40 +59,88 @@ def begin(s):
   mapShare(s)
   profileTemplate()
 
+
+# ABANDON ALL HOPE!
 def sudoAdmins():
   os.chdir('/')
   os.chdir('etc')
-  print "\nGiving domain admins sudo right\n"
-  print "Attempting to open \'etc\\sudoers\'\n"
+  print "Giving domain admins sudo right\n"
+  #print "Attempting to open \'etc\\sudoers\'\n"
 
-  os.system('touch sudoers.tmp')
+ # os.system('touch sudoers.neu')
  # os.system('rm sudoers.old')
-  try:
-    superUsers = open('sudoers.tmp', 'r+')
+ # try:
+ #   superUsers = open('sudoers', 'r+')
+ #   superUsersNeu = open('sudoers.neu', 'r+')
+ # except IOError as err:
+ #   print "I/O error ({0}): {1}".format(err.errno, err.strerror)
+ #   sys.exit()
 
+ # print "Sucessfully opened \'etc\\sudoers\'\n"
+
+  sudoLine = '%DOMAIN_Admins ALL=(ALL)ALL'
+
+
+  print 'I am going to open /etc/sudoers in visudo for you know.'
+  print 'When the screen opens, you need to add a line into the file'
+  print '\nUnder the line that reads: '
+  print '\n	# Members of the admin group may gain root provileges	\n'
+  print 'You need to type: '
+  print "\n		" + sudoLine + "		\n"
+
+  raw_input("Press ENTER when you are ready...")
+
+  os.system('visudo -f sudoers')
+  
+ # for line in superUsers:
+ #   print line
+ #   if (line == "# Members of the admin group may gain root privileges"):
+ #     superUsersNeu.write(line)
+ #     superUsersNeu.write(sudoLine)
+ #   else:  
+ #     superUsersNeu.write(line)
+
+  #os.system('mv sudoers sudoers.old && cp sudoers.neu sudoers')
+
+def mapShare(s):
+  print "Mapping the user share"
+  print "Installing libpam-mount"
+  os.chdir('security')
+  os.system('sudo apt-get install libpam-mount')
+  os.system('sudo chmod a+w pam_mount.conf.xml')
+
+  strToWrite = '<volume user=\"*\"\nfstype=\"cifs\"\nserver=\"' + s + '\"\npath=\"home/%(DOMAIN_USER)\"\nmountpoint=\"~/H:_%(DOMAIN_USER)\"\n/>'
+
+  print 'Writing: \n'
+  print  strToWrite + '\n'
+  print 'to \'etc/security/pam_mount.conf.xml'
+  os.system('rm tempPamMount.xml')
+  os.system('touch tempPamMount.xml')
+
+  try:
+    pamMount = open('pam_mount.conf.xml', 'r+')
+    pamTemp = open('tempPamMount.xml', 'r+')
   except IOError as err:
     print "I/O error ({0}): {1}".format(err.errno, err.strerror)
     sys.exit()
 
-  print "Sucessfully opened \'etc\\sudoers\'\n"
-
-
-
-  for line in superUsers:
-    print line
-    if (line == "# Members of the admin group may gain root privileges"):
-      superUsers.write(line)
-      superUsers.write('%DOMAIN_Admins ALL=(ALL)ALL')
-    else:  
-      superUsers.write(line)
-
-  #os.system('mv sudoers sudoers.old && cp sudoers.tmp sudoers')
-
-def mapShare(s):
-  print "Got here"  
+  for line in pamMount:
+    line = line.strip()
+    if (line == '<!-- Volume definitions -->'):
+      pamTemp.write(line)
+      pamTemp.write('\n')
+      pamTemp.write(strToWrite)
+      print line
+    else:
+      pamTemp.write(line)
+      pamTemp.write('\n')
+      print line  
  
-
-
+  os.system('sudo rm pam_mount.conf.xml.old')
+  os.system('mv pam_mount.conf.xml pam_mount.conf.xml.old') 
+  os.system('mv tempPamMount.xml pam_mount.conf.xml')
+  os.system('source pam_mount.conf.xml')
+  os.chdir(os.pardir)
 def profileTemplate():
   print "Got Here too"
 
