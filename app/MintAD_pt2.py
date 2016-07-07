@@ -16,10 +16,13 @@
 import sys
 import os
 
+cwd = os.getcwd()
+
 def setup():
   # Clear the terminal and print the header
   os.system('./utils/clear.py')
   os.system('./app/header.py')
+  
 
   print "This script will edit several root config files\n"
 
@@ -60,14 +63,12 @@ def begin(s):
   profileTemplate()
 
 
-# ABANDON ALL HOPE!
 def sudoAdmins():
   os.chdir('/')
   os.chdir('etc')
-  print "Giving domain admins sudo right\n"
-  print "Attempting to open \'etc\\sudoers\'\n"
+  print "Giving domain admins sudo right"
+  print "Attempting to open \'etc\\sudoers\'"
 
-  os.system('rm tempSudoers')
   os.system('touch tempSudoers')
   os.system('rm sudoers.old')
   try:
@@ -80,18 +81,6 @@ def sudoAdmins():
   print "Sucessfully opened \'etc\\sudoers\'\n"
 
   sudoLine = '%DOMAIN_Admins ALL=(ALL)ALL'
-
-
-#  print 'I am going to open /etc/sudoers in visudo for you know.'
-#  print 'When the screen opens, you need to add a line into the file'
-#  print '\nUnder the line that reads: '
-#  print '\n	# Members of the admin group may gain root provileges	\n'
-#  print 'You need to type: '
-#  print "\n		" + sudoLine + "		\n"
-
-#  raw_input("Press ENTER when you are ready...")
-
-#  os.system('visudo -f sudoers')
   
   for line in superUsers:
     line = line.strip()
@@ -109,16 +98,16 @@ def sudoAdmins():
 
 def mapShare(s):
   print "Mapping the user share"
-  print "Installing libpam-mount"
+  print "\nInstalling libpam-mount"
   os.chdir('security')
   os.system('sudo apt-get install libpam-mount')
 
   strToWrite = '<volume user=\"*\"\nfstype=\"cifs\"\nserver=\"' + s + '\"\npath=\"home/%(DOMAIN_USER)\"\nmountpoint=\"~/H:_%(DOMAIN_USER)\"\n/>'
 
-  print 'Writing: \n'
+  print '\nWriting: \n'
   print  strToWrite + '\n'
   print 'to \'etc/security/pam_mount.conf.xml'
-  os.system('rm tempPamMount.xml')
+
   os.system('touch tempPamMount.xml')
 
   try:
@@ -141,15 +130,42 @@ def mapShare(s):
   os.system('sudo rm pam_mount.conf.xml.old')
   os.system('mv pam_mount.conf.xml pam_mount.conf.xml.old') 
   os.system('mv tempPamMount.xml pam_mount.conf.xml')
-  #os.system('source pam_mount.conf.xml')
 
   os.chdir(os.pardir)
 
 def profileTemplate():
-  print "Got Here too"
+  print "Applying the user profile template."
+  os.system('rm pam.d/tempCommon')
+  os.system('touch pam.d/tempCommon')
+  
+  plateStr = 'session required 		pam_mkhomedir.so skel=/home/template/ umask=0022'
 
+  print '\nWriting: '
+  print '\n	' + plateStr + '	\n'
+  print 'to \'etc/pam.d/common-session\'\n'
+  
+  try:
+    profile = open('pam.d/common-session', 'r+')
+    tempProfile = open('pam.d/tempCommon', 'r+')
 
+  except IOError as err:
+    print "I/O Error, file does not exist!"
+    sys.exit()
 
+  for line in profile:
+    line = line.strip()
+    if (line == '# and here are more per-package modules (the "Additional" block)'):
 
+      tempProfile.write(line)
+      tempProfile.write("\n")
+      tempProfile.write(plateStr)
+      tempProfile.write("\n")
+    
+    else:
+      tempProfile.write(line)
+      tempProfile.write("\n")
+
+    os.system('mv pam.d/common-session pam.d/common-session.old')
+    os.system('mv pam.d/tempCommon pam.d/common-session')  
 
 setup()
