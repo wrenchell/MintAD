@@ -34,6 +34,7 @@ def begin():
 
   getInput()
 
+# getInput will just get the Domain name and account name from the user
 def getInput():
   os.system('./utils/clear.py')
   os.system('./app/header.py')
@@ -44,37 +45,46 @@ def getInput():
   accntName = raw_input('Enter the user account name: ')
   
   os.system('./utils/clear.py')
-  os.system('./app/header/.py')
+  os.system('./app/header.py')
 
   print "Domain name is : " + domainName
   print "Account name is: " + accntName
 
+  # Check to make sure everything was entered correctly
   correct = raw_input("Are these correct? (y/n): ")
   upperAnswer = correct.upper()
  
+  # Standard Booleans
   if (upperAnswer != 'Y'):
     getInput()
   else:
     permissions(domainName, accntName)
-    print "\n\n\n\n"
   
-
+# permissions just sets the third party script as +x
 def permissions(d, a):
+
   os.system('chmod a+x pbis-open-8.3.0.3287.linux.x86_64.deb.sh')
   run(d, a)
 
 
+# run runs both scripts.  One to install AD stuff and the other to join Domain
 def run(d, a):
+  print "\n\n"
   os.system('./pbis-open-8.3.0.3287.linux.x86_64.deb.sh')
   
   print "\n\nFinished bash script execution.  Running the newly installed scriptlocated in:"
   
   print "/opt/pbis/bin/domainjoin-cli\n\n"
+  
+  scriptRun = "./opt/pbis/bin/domainjoin-cli join " 
+  scriptRun += d
+  scriptRun += " "
+  scriptRun += a
 
   # We need to change pwd to be able to access what was just unpacked
   # We will change back right after
   os.chdir("/")
-  os.system('./opt/pbis/bin/domainjoin-cli')
+  os.system(scriptRun)
   os.chdir(os.pardir)
  
 
@@ -82,3 +92,4 @@ begin()
 
 print "\n\n Script executed successfully.  Ready for Reboot and part 2"
 raw_input("Press any key to continue...")
+print "\n\n\n\n"
