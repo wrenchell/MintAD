@@ -135,21 +135,21 @@ def mapShare(s):
 
 def profileTemplate():
   print "Applying the user profile template."
-  os.system('rm pam.d/tempCommon')
-  os.system('touch pam.d/tempCommon')
+  os.chdir('pam.d')
+  os.system('rm tempCommon')
+  os.system('touch tempCommon')
   
-  plateStr = 'session required 		pam_mkhomedir.so skel=/home/template/ umask=0022'
+  plateStr = 'session required 	pam_mkhomedir.so skel=/home/template/ umask=0022'
 
   print '\nWriting: '
   print '\n	' + plateStr + '	\n'
   print 'to \'etc/pam.d/common-session\'\n'
   
   try:
-    profile = open('pam.d/common-session', 'r+')
-    tempProfile = open('pam.d/tempCommon', 'r+')
-
+    profile = open('common-session', 'r+')
+    tempProfile = open('tempCommon', 'r+')
   except IOError as err:
-    print "I/O Error, file does not exist!"
+    print "I/O error ({0}): {1}".format(err.errno, err.strerror)
     sys.exit()
 
   for line in profile:
@@ -165,7 +165,21 @@ def profileTemplate():
       tempProfile.write(line)
       tempProfile.write("\n")
 
-    os.system('mv pam.d/common-session pam.d/common-session.old')
-    os.system('mv pam.d/tempCommon pam.d/common-session')  
+  os.system('mv common-session common-session.old')
+  os.system('mv tempCommon common-session')  
 
+def end():
+  raw_input("\n\nScript has finished!  Press ENTER to continue...")
+  os.chdir(cwd)
+  os.system('./utils/clear.py')
+  os.system('./app/header.py')
+
+  print "Linux Mint Active Directory Intregration Completed!"
+  print "The system must be restarted for most changes to take effect."
+
+  raw_input('Press Enter to end...')
+
+
+  
 setup()
+end()
