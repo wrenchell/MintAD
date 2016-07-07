@@ -30,19 +30,55 @@ def begin():
   
   print "If you stumbled across this script on accident, just type [^C]"
 
-  raw_input("\nOtherwise, press ENTER to continue...")
+  raw_input("\nOtherwise, press ENTER to continue...\n\n")
 
+  getInput()
 
-def permissions():
+def getInput():
+  os.system('./utils/clear.py')
+  os.system('./app/header.py')
+
+  domainInput = raw_input('Enter the DOMAIN name: ')
+  domainName = domainInput.upper()
+
+  accntName = raw_input('Enter the user account name: ')
+  
+  os.system('./utils/clear.py')
+  os.system('./app/header/.py')
+
+  print "Domain name is : " + domainName
+  print "Account name is: " + accntName
+
+  correct = raw_input("Are these correct? (y/n): ")
+  upperAnswer = correct.upper()
+ 
+  if (upperAnswer != 'Y'):
+    getInput()
+  else:
+    permissions(domainName, accntName)
+    print "\n\n\n\n"
+  
+
+def permissions(d, a):
   os.system('chmod a+x pbis-open-8.3.0.3287.linux.x86_64.deb.sh')
-  run()
+  run(d, a)
 
-def run():
+
+def run(d, a):
   os.system('./pbis-open-8.3.0.3287.linux.x86_64.deb.sh')
+  
+  print "\n\nFinished bash script execution.  Running the newly installed scriptlocated in:"
+  
+  print "/opt/pbis/bin/domainjoin-cli\n\n"
 
+  # We need to change pwd to be able to access what was just unpacked
+  # We will change back right after
+  os.chdir("/")
+  os.system('./opt/pbis/bin/domainjoin-cli')
+  os.chdir(os.pardir)
+ 
 
 begin()
-permissions()
 
 print "\n\n Script executed successfully.  Ready for Reboot and part 2"
 raw_input("Press any key to continue...")
