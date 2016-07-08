@@ -18,6 +18,14 @@ import os
 
 cwd = os.getcwd()
 
+###############################################################################
+ # 
+ # setup
+ #
+ # First function call.  Mostly prints to the user.  Makes the subsequent 
+ # function calls
+ #
+##
 def setup():
   # Clear the terminal and print the header
   os.system('./utils/clear.py')
@@ -33,6 +41,14 @@ def setup():
   raw_input("\nOtherwise, press ENTER to continue...\n\n")
   serverInfo()
 
+
+###############################################################################
+ #
+ # serverInfo
+ # 
+ # Prompts the user for and records the server name.
+ # 
+##
 def serverInfo():
   os.system('./utils/clear.py')
   os.system('./app/header.py')
@@ -52,6 +68,18 @@ def serverInfo():
   else:
    begin(serverName)
 
+
+###############################################################################
+ #
+ # begin
+ #
+ # Serves as the main switchboard function for the class.  Calls all of the 
+ # functions which do the writing to the sys files.
+ #
+ # NOTE: This function is likely unnessary.  I could probably consoildate the
+ # functions to write in a more agnostic manner, but it would take time
+ #
+##
 def begin(s):
   # We will be using this function as a switch to process other data
 
@@ -63,6 +91,19 @@ def begin(s):
   profileTemplate()
 
 
+###############################################################################
+ #
+ # sudoAdmins
+ #
+ # sudoAdmins is the function that essentially 'writes' to the sudoers file.
+ # It doesn't literally do this, as the level of permissions required to write
+ # to 'sudoers' isn't really functially possible inside of a script.  Instead
+ # it reads the entire 'sudoers' file, line by line, and writes it into a temp
+ # file, adding what we need to add, where we need to add it.  It then backs up
+ # the original 'sudoers' file as 'sudoers.old' and changes the temp file to 
+ # be 'sudoers'.
+ #
+##
 def sudoAdmins():
   os.chdir('/')
   os.chdir('etc')
@@ -96,6 +137,16 @@ def sudoAdmins():
   os.system('mv sudoers sudoers.old')
   os.system('mv tempSudoers sudoers')
 
+
+###############################################################################
+ #
+ # mapShare
+ # 
+ # The 'mapShare' function is basically the same as 'sudoAdmins' and performs 
+ # and almost identical functionality.  As noted previously, could probably be
+ # written in more agnostic fashion and consolidated.
+ # 
+##
 def mapShare(s):
   print "Mapping the user share"
   print "\nInstalling libpam-mount"
@@ -133,6 +184,15 @@ def mapShare(s):
 
   os.chdir(os.pardir)
 
+
+###############################################################################
+ #
+ # profileTemplate
+ #
+ # The function 'profileTemplate' is -- again -- almost identical in 
+ # functionality to the preceeding functions.  Could probably be consoldated.
+ #
+##
 def profileTemplate():
   print "Applying the user profile template."
   os.chdir('pam.d')
@@ -168,6 +228,14 @@ def profileTemplate():
   os.system('mv common-session common-session.old')
   os.system('mv tempCommon common-session')  
 
+
+###############################################################################
+ #
+ # end
+ # 
+ # Honestly, do I need to explain this function?  No?  Good.
+ #
+##
 def end():
   raw_input("\n\nScript has finished!  Press ENTER to continue...")
   os.chdir(cwd)
@@ -180,6 +248,10 @@ def end():
   raw_input('Press Enter to end...')
 
 
-  
+###############################################################################
+ #
+ # Function calls
+ #
+##  
 setup()
 end()

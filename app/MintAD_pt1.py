@@ -16,8 +16,14 @@
 import sys 
 import os
 
-# The begin function will start the script by outputing relevent info to the 
-# user.
+###############################################################################
+ #
+ # begin
+ #
+ # The begin function will start the script by outputing relevent info to the 
+ # user.  That's all it does besides passing function control to 'getInput'.
+ #
+##
 def begin():
   # Clearing the terminal for prettier output (UGLY METHOD)
   os.system('./utils/clear.py')
@@ -34,7 +40,15 @@ def begin():
 
   getInput()
 
-# getInput will just get the Domain name and account name from the user
+
+###############################################################################
+ #
+ # getInput
+ #
+ # getInput will just get the Domain name and account name from the user.  
+ # After some basic bulletproofing, it passes control to 'permissions'.
+ #
+##
 def getInput():
   os.system('./utils/clear.py')
   os.system('./app/header.py')
@@ -59,15 +73,31 @@ def getInput():
     getInput()
   else:
     permissions(domainName, accntName)
-  
-# permissions just sets the third party script as +x
+
+
+###############################################################################
+ #
+ # permissions
+ #  
+ # Permissions just sets the third party script as +x.  Might be unnessary to 
+ # do so, but it won't hurt to run this command and it could be nessary. It 
+ # then passes control to 'run'.
+ #
+##
 def permissions(d, a):
 
   os.system('chmod a+x pbis-open-8.3.0.3287.linux.x86_64.deb.sh')
   run(d, a)
 
 
-# run runs both scripts.  One to install AD stuff and the other to join Domain
+###############################################################################
+ #
+ # run
+ #
+ # Run runs both of the 'pbis' scripts.  One to install AD stuff and the 
+ # other to join Domain.  
+ #
+##
 def run(d, a):
   print "\n\n"
   os.system('./pbis-open-8.3.0.3287.linux.x86_64.deb.sh')
@@ -90,6 +120,11 @@ def run(d, a):
   os.chdir(os.pardir)
  
 
+###############################################################################
+ #
+ # Function calls
+ #
+##
 begin()
 
 print "\n\n Script executed successfully.  Ready for Reboot and part 2"
