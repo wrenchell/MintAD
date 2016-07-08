@@ -72,6 +72,8 @@ def run(d, a):
   print "\n\n"
   os.system('./pbis-open-8.3.0.3287.linux.x86_64.deb.sh')
   
+  #os.system('./utils/pbisScript.py')
+
   print "\n\nFinished bash script execution.  Running the newly installed scriptlocated in:"
   
   print "/opt/pbis/bin/domainjoin-cli\n\n"
