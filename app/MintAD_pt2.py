@@ -15,7 +15,11 @@
 
 import sys
 import os
+import errorCheck
 
+finished1 = 'false'
+finished2 = 'false'
+finished3 = 'false'
 cwd = os.getcwd()
 
 ###############################################################################
@@ -89,6 +93,7 @@ def begin(s):
   sudoAdmins()
   mapShare(s)
   profileTemplate()
+  end(s)
 
 
 ###############################################################################
@@ -112,30 +117,39 @@ def sudoAdmins():
 
   os.system('touch tempSudoers')
   os.system('rm sudoers.old')
-  try:
-    superUsers = open('sudoers', 'r+')
-    tempSudoers = open('tempSudoers', 'r+')
-  except IOError as err:
-    print "I/O error ({0}): {1}".format(err.errno, err.strerror)
-    sys.exit()
-
-  print "Sucessfully opened \'etc\\sudoers\'\n"
 
   sudoLine = '%DOMAIN_Admins ALL=(ALL)ALL'
-  
-  for line in superUsers:
-    line = line.strip()
-    if (line == "# Members of the admin group may gain root privileges"):
-      tempSudoers.write(line)
-      tempSudoers.write("\n")
-      tempSudoers.write(sudoLine)
-      tempSudoers.write("\n")
-    else:  
-      tempSudoers.write(line)
-      tempSudoers.write('\n')
 
-  os.system('mv sudoers sudoers.old')
-  os.system('mv tempSudoers sudoers')
+  e = errorCheck.errorCheck()
+  errorChecks = e.checkInput(sudoLine, 'sudoers')
+  
+  if (errorChecks == 'false'):
+    try:
+      superUsers = open('sudoers', 'r+')
+      tempSudoers = open('tempSudoers', 'r+')
+    except IOError as err:
+      print "I/O error ({0}): {1}".format(err.errno, err.strerror)
+      sys.exit()
+
+    print "Sucessfully opened \'etc\\sudoers\'\n"
+   
+    for line in superUsers:
+      line = line.strip()
+
+      if (line == "# Members of the admin group may gain root privileges"):
+        tempSudoers.write(line)
+        tempSudoers.write("\n")
+        tempSudoers.write(sudoLine)
+        tempSudoers.write("\n")
+      else:  
+        tempSudoers.write(line)
+        tempSudoers.write('\n')
+
+    superUsers.close()
+    tempSudoers.close()
+
+    os.system('mv sudoers sudoers.old')
+    os.system('mv tempSudoers sudoers')
 
 
 ###############################################################################
@@ -154,33 +168,40 @@ def mapShare(s):
   os.system('sudo apt-get install libpam-mount')
 
   strToWrite = '<volume user=\"*\"\nfstype=\"cifs\"\nserver=\"' + s + '\"\npath=\"home/%(DOMAIN_USER)\"\nmountpoint=\"~/H:_%(DOMAIN_USER)\"\n/>'
+  strToTest = '<volume user=\"*\"'
+  e = errorCheck.errorCheck()
+  errorChecks = e.checkInput(strToTest, 'pam_mount.conf.xml')
 
-  print '\nWriting: \n'
-  print  strToWrite + '\n'
-  print 'to \'etc/security/pam_mount.conf.xml'
+  if (errorChecks == 'false'):
+    print '\nWriting: \n'
+    print  strToWrite + '\n'
+    print 'to \'etc/security/pam_mount.conf.xml'
 
-  os.system('touch tempPamMount.xml')
+    os.system('touch tempPamMount.xml')
 
-  try:
-    pamMount = open('pam_mount.conf.xml', 'r+')
-    pamTemp = open('tempPamMount.xml', 'r+')
-  except IOError as err:
-    print "I/O error ({0}): {1}".format(err.errno, err.strerror)
-    sys.exit()
+    try:
+      pamMount = open('pam_mount.conf.xml', 'r+')
+      pamTemp = open('tempPamMount.xml', 'r+')
+    except IOError as err:
+      print "I/O error ({0}): {1}".format(err.errno, err.strerror)
+      sys.exit()
 
-  for line in pamMount:
-    line = line.strip()
-    if (line == '<!-- Volume definitions -->'):
-      pamTemp.write(line)
-      pamTemp.write('\n')
-      pamTemp.write(strToWrite)
-    else:
-      pamTemp.write(line)
-      pamTemp.write('\n')
- 
-  os.system('sudo rm pam_mount.conf.xml.old')
-  os.system('mv pam_mount.conf.xml pam_mount.conf.xml.old') 
-  os.system('mv tempPamMount.xml pam_mount.conf.xml')
+    for line in pamMount:
+      line = line.strip()
+      if (line == '<!-- Volume definitions -->'):
+        pamTemp.write(line)
+        pamTemp.write('\n')
+        pamTemp.write(strToWrite)
+      else:
+        pamTemp.write(line)
+        pamTemp.write('\n')
+    
+    pamMount.close()
+    pamTemp.close()
+
+    os.system('sudo rm pam_mount.conf.xml.old')
+    os.system('mv pam_mount.conf.xml pam_mount.conf.xml.old') 
+    os.system('mv tempPamMount.xml pam_mount.conf.xml')
 
   os.chdir(os.pardir)
 
@@ -196,37 +217,43 @@ def mapShare(s):
 def profileTemplate():
   print "Applying the user profile template."
   os.chdir('pam.d')
-  os.system('rm tempCommon')
   os.system('touch tempCommon')
   
   plateStr = 'session required 	pam_mkhomedir.so skel=/home/template/ umask=0022'
 
-  print '\nWriting: '
-  print '\n	' + plateStr + '	\n'
-  print 'to \'etc/pam.d/common-session\'\n'
+  e = errorCheck.errorCheck()
+  errorChecks = e.checkInput(plateStr, 'common-session')
+
+  if (errorChecks == 'false'):
+    print '\nWriting: '
+    print '\n	' + plateStr + '	\n'
+    print 'to \'etc/pam.d/common-session\'\n'
   
-  try:
-    profile = open('common-session', 'r+')
-    tempProfile = open('tempCommon', 'r+')
-  except IOError as err:
-    print "I/O error ({0}): {1}".format(err.errno, err.strerror)
-    sys.exit()
+    try:
+      profile = open('common-session', 'r+')
+      tempProfile = open('tempCommon', 'r+')
+    except IOError as err:
+      print "I/O error ({0}): {1}".format(err.errno, err.strerror)
+      sys.exit()
 
-  for line in profile:
-    line = line.strip()
-    if (line == '# and here are more per-package modules (the "Additional" block)'):
+    for line in profile:
+      line = line.strip()
+      if (line == '# and here are more per-package modules (the "Additional" block)'):
 
-      tempProfile.write(line)
-      tempProfile.write("\n")
-      tempProfile.write(plateStr)
-      tempProfile.write("\n")
+        tempProfile.write(line)
+        tempProfile.write("\n")
+        tempProfile.write(plateStr)
+        tempProfile.write("\n")
     
-    else:
-      tempProfile.write(line)
-      tempProfile.write("\n")
+      else:
+        tempProfile.write(line)
+        tempProfile.write("\n")
 
-  os.system('mv common-session common-session.old')
-  os.system('mv tempCommon common-session')  
+    profile.close()
+    tempProfile.close()
+
+    os.system('mv common-session common-session.old')
+    os.system('mv tempCommon common-session')  
 
 
 ###############################################################################
@@ -236,16 +263,52 @@ def profileTemplate():
  # Honestly, do I need to explain this function?  No?  Good.
  #
 ##
-def end():
+def end(s):
+  os.chdir("/")
+  os.chdir('/etc')
+
+  finalCheck = errorCheck.errorCheck()
+  
+  finished1 = finalCheck.checkInput('%DOMAIN_Admins ALL=(ALL)ALL','sudoers')
+
+  os.chdir('security')
+  finished2 = finalCheck.checkInput('<volume user=\"*\"','pam_mount.conf.xml')
+  os.chdir(os.pardir)
+
+  os.chdir('pam.d')
+  finished3 = finalCheck.checkInput('session required 	pam_mkhomedir.so skel=/home/template/ umask=0022','common-session')
+  
+  errorNum = 0
+
   raw_input("\n\nScript has finished!  Press ENTER to continue...")
   os.chdir(cwd)
   os.system('./utils/clear.py')
   os.system('./app/header.py')
 
-  print "Linux Mint Active Directory Intregration Completed!"
-  print "The system must be restarted for most changes to take effect."
+  print "Testing the files that were changed during the script."
+  print "Testing /etc/sudoers: " + finished1
+  print "Testing /etc/security/pam_mount.conf.xml: " + finished2
+  print "Testing /etc/pam.d/common-session: " + finished3 + '\n\n'
 
-  raw_input('Press Enter to end...')
+  if (finished1 == 'false'):
+    print "ERROR!  The file located at /etc/sudoers did not edit!"
+    errorNum += 1
+  if (finished2 == 'false'):
+    print "ERROR! The file located at /etc/security/pam_mount.xml.conf did not edit!"
+    errorNum += 1
+  if (finished3 == 'false'):
+    print "ERROR! The file located at /etc/pam.d/common-session did not edit!"
+    errorNum += 1
+
+  if (errorNum > 0):
+    print "\nFinished with " + str(errorNum) + " errors!  This configuration has failed.  You will have to try again.  Exiting."
+    sys.exit()  
+
+  else:
+    print "Linux Mint Active Directory Intregration Completed!"
+    print "The system must be restarted for most changes to take effect."
+
+    raw_input('Press Enter to end...')
 
 
 ###############################################################################
@@ -254,4 +317,3 @@ def end():
  #
 ##  
 setup()
-end()
