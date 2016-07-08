@@ -20,6 +20,7 @@ import errorCheck
 finished1 = 'false'
 finished2 = 'false'
 finished3 = 'false'
+skipNum = 0 
 cwd = os.getcwd()
 
 ###############################################################################
@@ -113,10 +114,8 @@ def sudoAdmins():
   os.chdir('/')
   os.chdir('etc')
   print "Giving domain admins sudo right"
-  print "Attempting to open \'etc\\sudoers\'"
 
   os.system('touch tempSudoers')
-  os.system('rm sudoers.old')
 
   sudoLine = '%DOMAIN_Admins ALL=(ALL)ALL'
 
@@ -124,6 +123,10 @@ def sudoAdmins():
   errorChecks = e.checkInput(sudoLine, 'sudoers')
   
   if (errorChecks == 'false'):
+    print "\nWriting: "
+    print "\n" + sudoLine + "\n"
+    print "to \'/etc/sudoers\'\n\n"
+
     try:
       superUsers = open('sudoers', 'r+')
       tempSudoers = open('tempSudoers', 'r+')
@@ -151,6 +154,12 @@ def sudoAdmins():
     os.system('mv sudoers sudoers.old')
     os.system('mv tempSudoers sudoers')
 
+  else:
+    global skipNum
+    skipNum += 1
+    print "\nFile located at /etc/sudoers has already"
+    print "been edited.  Not writing anything there.\n"
+
 
 ###############################################################################
  #
@@ -175,7 +184,7 @@ def mapShare(s):
   if (errorChecks == 'false'):
     print '\nWriting: \n'
     print  strToWrite + '\n'
-    print 'to \'etc/security/pam_mount.conf.xml'
+    print 'to \'etc/security/pam_mount.conf.xml\'\n\n'
 
     os.system('touch tempPamMount.xml')
 
@@ -203,6 +212,12 @@ def mapShare(s):
     os.system('mv pam_mount.conf.xml pam_mount.conf.xml.old') 
     os.system('mv tempPamMount.xml pam_mount.conf.xml')
 
+  else:
+    global skipNum 
+    skipNum += 1
+    print "\nFile located at /etc/security/pam_mount.conf.xml has already"
+    print "been edited.  Not writing anything there.\n"
+
   os.chdir(os.pardir)
 
 
@@ -226,8 +241,8 @@ def profileTemplate():
 
   if (errorChecks == 'false'):
     print '\nWriting: '
-    print '\n	' + plateStr + '	\n'
-    print 'to \'etc/pam.d/common-session\'\n'
+    print '\n' + plateStr + '\n'
+    print 'to \'etc/pam.d/common-session\'\n\n'
   
     try:
       profile = open('common-session', 'r+')
@@ -255,6 +270,11 @@ def profileTemplate():
     os.system('mv common-session common-session.old')
     os.system('mv tempCommon common-session')  
 
+  else:
+    global skipNum 
+    skipNum += 1
+    print "\nThe File located at /etc/pam.d/common-session has already"
+    print "been edited.  Not writing anything there.\n"
 
 ###############################################################################
  #
@@ -305,6 +325,11 @@ def end(s):
     sys.exit()  
 
   else:
+    if (skipNum > 0):
+      print "This script has finished without editing " + str(skipNum) 
+      print "files because the files already had the lines we needed to add."  
+      print "This is odd.  Check and make sure everything is ok.\n"
+
     print "Linux Mint Active Directory Intregration Completed!"
     print "The system must be restarted for most changes to take effect."
 
